@@ -1,180 +1,104 @@
 <div align="center">
 
-<img src="assets/neru-appicon.png" alt="Neru" width="80" />
+<img src="assets/beru-banner.svg" alt="Beru" width="100%" />
 
-# Neru
-
-Hints, grids and vim keys for your whole desktop. Free, open source, one binary, one TOML file.
-
-[![Latest Release](https://img.shields.io/github/v/release/y3owk1n/neru?style=flat-square)](https://github.com/y3owk1n/neru/releases)
-[![License](https://img.shields.io/github/license/y3owk1n/neru?style=flat-square)](LICENSE)
-[![Discord](https://img.shields.io/discord/1502261043701874698?style=flat-square&label=discord)](https://discord.gg/KZwnwr9dz6)
-[![Sponsor](https://img.shields.io/badge/sponsor-%E2%9D%A4-30363D?style=flat-square)](https://github.com/sponsors/y3owk1n)
-
-|     macOS 14+     |   Linux (X11, Wayland)   |     Windows 10+     |
-| :---------------: | :----------------------: | :-----------------: |
-|     Stable ✅     |      Beta, daily 🔵      |    Beta, daily 🔵   |
-
-<sub>[What the labels mean](docs/reference/platform-support.md#what-the-labels-mean)</sub>
+**Hints, grids and vim keys for your whole KDE desktop.**
+Windows, taskbar, tray popups and desktop icons, all without touching the mouse.
 
 </div>
 
----
-
-https://github.com/user-attachments/assets/f4c86753-0109-47c9-a94e-775af2546a17
-
-Neru does what Vimium does in the browser, for every app, window, menu bar and dock item on your screen. Press a hotkey, type the label on the element you want, and the cursor jumps there and clicks.
-
-## Why Neru
-
-- **Works where accessibility trees don't.** Grid modes split pixels, not widgets, so they work in canvases, games and remote desktops. Hints use the accessibility tree, on-device OCR, or a pure-Go scan of the screen image.
-- **Fast.** The event tap sits on every keystroke, and Neru treats any added latency as a bug.
-- **No per-app hacks.** Good defaults, plus per-app overrides you write yourself, applied when focus changes.
-- **Scriptable.** Hotkeys, the `neru` CLI and the IPC socket run the same commands, so a binding works unchanged from skhd, Hammerspoon, Raycast or a shell script. Hooks run your own steps when a mode opens or closes, the focused app changes, or Neru pauses. `neru watch` streams the same events live, filtered with `--event`. `neru query` reports displays, the cursor and hint targets, and `--json` on the status and query commands gives a program something to parse. The IPC protocol is versioned, with JSON schemas and a Go client package.
-- **Private.** OCR and element detection run on-device. No telemetry, no accounts, and typed text never reaches the log.
-- **Fails loudly.** A mistyped flag in a binding fails config validation instead of doing nothing when you press the key.
-
-## Install
-
-```bash
-# macOS / Linux
-curl -fsSL https://raw.githubusercontent.com/y3owk1n/neru/main/scripts/install.sh | bash
-```
-
-```powershell
-# Windows
-irm https://raw.githubusercontent.com/y3owk1n/neru/main/scripts/install.ps1 | iex
-```
-
-Run it again to update. Homebrew, oku, Nix, prebuilt binaries, building from source, [agent skills](docs/guide/installation.md#set-up-with-an-agent) and uninstalling are in [Installation](docs/guide/installation.md).
-
-## Quick start
-
-Run `neru launch`, grant the permissions `neru doctor` asks for, then press
-`Primary+Shift+Space` for hints. The full first run, including Linux, is in
-[Getting started](docs/guide/getting-started.md).
-
-## Modes
-
-<table>
-<tr>
-<td align="center" width="50%">
-<img src="https://github.com/user-attachments/assets/d82e14fa-0ac4-4081-9a0a-f99243d1da5b" alt="Recursive Grid Mode" /><br/>
-<sub><b>Recursive Grid</b></sub>
-</td>
-<td align="center" width="50%">
-<img src="https://github.com/user-attachments/assets/a19ef869-6400-4b5f-b3c6-92af69c2a76b" alt="Hints Mode" /><br/>
-<sub><b>Hints</b></sub>
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-<img src="https://github.com/user-attachments/assets/913e9d15-7f42-470d-b5cf-7a55065789fe" alt="Bisect Mode" /><br/>
-<sub><b>Bisect</b></sub>
-</td>
-<td align="center" width="50%">
-<img src="https://github.com/user-attachments/assets/392fcfa1-9779-464c-8bac-a05a6afc73c3" alt="Grid Mode" /><br/>
-<sub><b>Grid</b></sub>
-</td>
-</tr>
-</table>
-
-| Mode                  | Default hotkey        | How it works                                                    | Best for                                    |
-| :-------------------- | :-------------------- | :-------------------------------------------------------------- | :------------------------------------------ |
-| **Recursive Grid** ⭐ | `Primary+Shift+C`     | Split 3x3 and pick cell after cell until the cursor lands       | Anything, including canvases and games      |
-| **Bisect**            | `Primary+Shift+B`     | `hjkl` keep a half, `yubn` a quadrant, until the cursor lands   | Anything, without reading labels            |
-| **Hints**             | `Primary+Shift+Space` | Labels every target via accessibility tree, OCR or a pixel scan | Native apps, Electron, browsers, Figma      |
-| **Grid**              | `Primary+Shift+G`     | Type a row and column label to jump to a cell                   | Coarse jumps across big monitors            |
-| **Scroll**            | `Primary+Shift+S`     | `j`/`k`, `u`/`d`, `gg`/`G`, `h`/`l` in any scroll view          | Reading without lifting your hands          |
-| **Monitor Select**    | disabled, unbound     | Labels each display, type one to jump                           | Multi-monitor setups                        |
-| **Your own**          | unbound               | A name, an indicator and a key table you declare in config      | Window management layers, app-specific keys |
-
-`Primary` is `Cmd` on macOS and `Ctrl` on Linux and Windows. Linux ships without these defaults so they never collide with terminal shortcuts. Every binding is remappable.
-
-Every mode except monitor select gives you left, right and middle click, double and triple click, drag with any button, and sticky modifiers. `[held_repeat]` adds held-key glide, with acceleration if you want it.
-
-## Configuration
-
-Everything is one TOML file. Apply edits with `neru config reload`, or change one value with `neru config set`.
-
-```toml
-[hotkeys]
-"Primary+Shift+Space" = "hints --action left_click"   # click on select, Vimium style
-"Primary+Shift+W" = "mode window"
-
-[macros]
-click_and_exit = ["action left_click --bail-on-error", "idle"]
-
-[[hints.app_configs]]
-bundle_id = "com.brave.Browser"   # bundle ID on macOS, WM_CLASS or app_id on Linux, full executable path on Windows
-hotkeys = { "Return" = "macro click_and_exit" }
-
-[modes.window]
-indicator = "Window"
-
-[modes.window.hotkeys]
-"h" = "exec yabai -m window --focus west"
-"l" = "exec yabai -m window --focus east"
-```
-
-Every hotkey command is also a shell command:
-
-```bash
-neru hints --role button --text save   # only buttons whose text matches
-neru run "action save_cursor_pos" "hints --action left_click" \
-         "action wait_for_mode_exit" "action restore_cursor_pos"
-neru config set hints.strategy contour
-neru doctor                            # diagnose permissions and backends
-```
-
-Themes, indicators, smooth cursor and scroll, virtual pointer, app exclusions and screen-share hiding are options too.
-
-## Build on Neru
-
-Status bars, launchers and voice tools can follow Neru and drive it:
-
-```bash
-neru watch --event mode_enter,mode_exit   # one JSON line per mode change
-```
-
-```go
-neru := client.New()   // github.com/y3owk1n/neru/client
-status, err := neru.Status(ctx)
-_, err = neru.Send(ctx, "hints", "--action", "left_click")
-```
-
-Which interface fits which tool is in [Build on Neru](docs/guide/integrations.md). With a coding agent, the `neru-build-integration` [skill](docs/guide/installation.md#set-up-with-an-agent) writes and tests one against your installed version.
-
-## Documentation
-
-Read the docs at **[neru.kylewong.my](https://neru.kylewong.my/)**,
-or browse [docs/](docs/README.md) here on GitHub.
-
-## Community
-
-> _"neru: the ACTUAL BEST app for ditching mouse"_
-
-[![Community YouTube Review](https://img.youtube.com/vi/OFnpYTDA2gY/maxresdefault.jpg)](https://www.youtube.com/watch?v=OFnpYTDA2gY)
-
-- [Neru Dojo](https://bernatgene.github.io/neru-dojo/): a browser game to train recursive grid and hints.
-- [Community configs](docs/project/showcases.md): setups shared by users.
-- [Discord](https://discord.gg/KZwnwr9dz6): questions and setups.
-
-## Contributing
-
-Bug reports, especially on Linux and Windows, and pull requests are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Support the project
-
-If Neru has earned a place in your workflow, [sponsor it](https://github.com/sponsors/y3owk1n). Need only window management? [mimi](https://github.com/y3owk1n/mimi) is Neru's window and space features as a standalone tool.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
+> Beru is a fork of [Neru](README-NERU.md) by y3owk1n, tuned for KDE Plasma 6 on
+> Wayland. The name is a nod to Beru from *Solo Leveling*, and the project has no
+> connection to that series. The code underneath is still Neru's (MIT), so the
+> command, config folder and service are still called `neru`.
 
 <div align="center">
-<br/>
 
-Made with ❤️ by <a href="https://github.com/y3owk1n">y3owk1n</a>
+<img src="assets/beru-demo.gif" alt="Beru hints and grid in System Settings" width="760" />
+
+<sub>Recorded in System Settings. <a href="demo/beru-kde-demo.mp4">Video version</a></sub>
 
 </div>
+
+## What it does
+
+A dead touchpad shouldn't lock you out of your desktop. Beru puts a label on
+everything you can click, and you type it.
+
+- **Hints**: labels on every clickable thing in the focused window, the taskbar, the tray (and its popups) and the desktop icons.
+- **Grid**: split the screen into cells and zoom in with a few keys. Works where hints can't see, like canvases and Electron apps.
+- **Scroll**: `j` `k` `gg` `G`, anywhere.
+- **Local**: one small background daemon, no network access, no telemetry.
+
+## Keys
+
+Set these up once under System Settings, Shortcuts, Custom Shortcuts:
+
+| Keys | Command | What happens |
+| --- | --- | --- |
+| `Meta+F` | `neru hints --action left_click` | Labels appear, type one to click it |
+| `Meta+Shift+F` | `neru hints --action right_click` | Same, but right-click |
+| `Meta+Shift+G` | `neru recursive_grid --action left_click` | Zoom in 3x3 at a time, click where you land |
+| `Meta+S` | `neru scroll` | Vim-style scrolling at the cursor |
+| `Meta+Escape` | `neru idle` | Leave any mode |
+
+Inside the grid, `Shift+L`, `Shift+R` and `Shift+M` click. Add `Return` and a
+double-click if you like:
+
+```toml
+[recursive_grid.hotkeys]
+"Return" = "action left_click"
+"Shift+D" = "action left_click,left_click"   # double-click
+```
+
+## Where it works
+
+| Surface | Hints | Notes |
+| --- | --- | --- |
+| Qt and KDE apps (Dolphin, System Settings, KCalc, Konsole) | Yes | |
+| Taskbar, tray and tray popups | Yes | The Bluetooth popup works, so you can connect devices by keyboard |
+| Desktop icons | Yes | Show the desktop first (`Meta+D`) |
+| Electron apps (Claude Desktop, VS Code, Teams) | Barely | They expose almost nothing, use the grid |
+| Browsers | Skipped | Keep Vimium-C, or list them under `general.excluded_apps` |
+
+## Tricks
+
+- **Jump by name.** `neru hints --text Bluetooth --action left_click` only labels elements matching the text.
+- **Click a chain.** Add `--repeat` to a hint or grid command to stay in the mode and click several things in a row.
+- **Aim, then act.** `neru recursive_grid` with no `--action` just moves the cursor, so you can place it and use `Shift+L/R/M` yourself.
+- **Make it readable.** The grid font and colors are plain config:
+
+  ```toml
+  [recursive_grid.ui]
+  font_size = 22
+  text_color = "#FFFFE000"
+  label_background = true
+  label_background_color = "#E6000000"
+  ```
+
+- **Skip an app.** `excluded_apps = ["firefox", "brave-browser"]` under `[general]` keeps Beru out of those windows.
+- **Reload live.** `neru config reload` applies config edits without restarting.
+
+## Make it scriptable
+
+Everything is a command, so it plugs into other tools. These come from Neru and
+work the same here:
+
+- **Macros and hooks** run your own steps when a mode opens, closes or the focused app changes.
+- **Per-app overrides** change roles, hotkeys or grid scope for one app.
+- **`neru query`** reports displays, the cursor, the focused window and what hints would label. `neru watch` streams events.
+- **A local socket** with a versioned protocol and a Go client, for anything you want to build on top.
+
+## Setup
+
+Keyboard capture needs your user in the `input` group and a writable
+`/dev/uinput` ([Linux setup](docs/guide/linux.md)). Build it as upstream describes
+in [`docs/contributing/development.md`](docs/contributing/development.md). On
+Ubuntu that means the packages listed in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) and Go 1.26. For a `beru`
+command, run `ln -s neru ~/.local/bin/beru`.
+
+## Credits
+
+Built on [Neru](https://github.com/y3owk1n/neru) by y3owk1n and its
+contributors, under the MIT license. See [`LICENSE`](LICENSE).
