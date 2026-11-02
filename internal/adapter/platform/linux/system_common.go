@@ -571,6 +571,12 @@ func (s *SystemAdapter) SyncCursorPosition(ctx context.Context) error {
 		return xwaylandRefreshCursorPosition(ctx)
 	}
 
+	if s.backend == backendWaylandKDE {
+		if point, ok := kwinCursorPosition(ctx); ok {
+			return wlrootsSetCursor(point)
+		}
+	}
+
 	if s.waylandUsesWlrClientStack() {
 		return waylandRefreshCursorPosition(ctx)
 	}
